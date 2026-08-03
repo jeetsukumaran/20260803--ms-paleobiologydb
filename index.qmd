@@ -1,0 +1,26 @@
+---
+title: PaleobiologyDB.jl toolkit and tutorials for paleobiological informatics in Julia
+authors:
+  - name: Jeet Sukumaran
+    affiliation: Biology, San Diego State University
+    roles: conceptualization, software development, writing.
+    corresponding: true
+  - name: Eric Ekdale
+    affiliation: Biology, San Diego State University
+    roles: conceptualization, paleobiology, writing.
+    corresponding: false
+  - name: Deloris Franklin
+    affiliation: Biology, San Diego State University
+    roles: software development, software testing, educational/tutorial development, writing.
+    corresponding: false
+  - name: Lilliana Skilling
+    affiliation: Biology, San Diego State University
+    roles: software testing, educational/tutorial development, writing.
+  - name: Maritza Sardina
+    affiliation: Biology, San Diego State University
+    roles: software testing, educational/tutorial development, writing.
+bibliography: references.bib
+---
+
+## Section
+This is a simple placeholder for the manuscript's main document [@knuth84].
