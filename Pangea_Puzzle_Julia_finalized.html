@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>The Pangea Puzzle, coded in Julia (Tutorial)</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="Pangea_Puzzle_Julia_finalized_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Pangea_Puzzle_Julia_finalized_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="Pangea_Puzzle_Julia_finalized_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="Pangea_Puzzle_Julia_finalized_files/libs/quarto-html/popper.min.js"></script>
+<script src="Pangea_Puzzle_Julia_finalized_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Pangea_Puzzle_Julia_finalized_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Pangea_Puzzle_Julia_finalized_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Pangea_Puzzle_Julia_finalized_files/libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Pangea_Puzzle_Julia_finalized_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Pangea_Puzzle_Julia_finalized_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Pangea_Puzzle_Julia_finalized_files/libs/bootstrap/bootstrap-138a6193a3bd40baf1e627da441a4734.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">The Pangea Puzzle, coded in Julia (Tutorial)</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jeet Sukumaran and Maritza Sardina </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>The original “Pangea Puzzle” tutorial was made by Mark D. Uhen from George Mason University, and was originally published on April 17th, 2017. This tutorial incorporates the original tutorial using a mix of both Julia code and written questions, as well as use of the PaleobiologyDB’s Navigator tool as a reference. The original tutorial can be accessed at <a href="https://serc.carleton.edu/NAGTWorkshops/intro/activities/177872.html" class="uri">https://serc.carleton.edu/NAGTWorkshops/intro/activities/177872.html</a>.</p>
+<p><em>How can we better incorporate data on the distributions of certain organisms on the modern-day continents?</em> (Uhen, 2017)</p>
+<p>Recent studies involving paleontological datasets and records have started to incorporate high-quality, accessible, and expansive databases involving the fossil occurrences, taxonomic ranks, and geospatial data of all sorts of organisms. Specifically, with the emergence of resources like PaleobiologyDB, its Navigator tool, and other Internet resources, it is now easier to map out the geographical and stratigraphical appearances of major groups of organisms on both past-day and modern-day continents with fossil records/datasets. Specifically, we will be analyzing the occurrences of certain fossils belonging to several groups of organisms.</p>
+<p>The main goal of this tutorial is to develop a better understanding of how fossil occurrences can be mapped out on the modern-day continents and to gain experience working with Julia. In particular, Julia will be used to create datasets (in the form of DataFrames) and high-quality visualizations of our data, specifically to better interpret how certain fossils appear on today’s map.</p>
+<section id="the-basics-of-julia-and-paleobiologydb" class="level1">
+<h1>The Basics of Julia and PaleobiologyDB</h1>
+<section id="julia" class="level2">
+<h2 class="anchored" data-anchor-id="julia">Julia</h2>
+<p>Julia is a dynamic, high-level, and open-source programming language that incorporates multiple dispatch, just-in-time compilation, and a rich ecosystem of packages. Julia is also designed for high-performance numerical and scientific computing, which makes it an excellent choice for data analysis, machine learning, and scientific research. Julia is widely supported by a community of programmers and programmer tools, including Jupyter notebooks, Visual Studio Code (VSCode), and more. Julia’s syntax is designed to be accessible to both beginning and experienced programmers, as it is easy to read and write.</p>
+<p>Before starting the tutorial, it is crucial to have all the necessary packages installed. In your terminal, you will use Julia’s built-in package manager “Pkg” to install several packages, using the command “Pkg.add”, with the names of each package inside the brackets and in quotation marks. For the purpose of this tutorial, you will need to install: “CairoMakie”, “ColorSchemes,” “DataFrames,” “GeoMakie,” “Makie,” and “PaleobiologyDB.” We’ll go a little deeper into each package throughout the tutorial.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Pkg</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">Pkg</span>.<span class="fu">add</span>([<span class="st">"PaleobiologyDB"</span>, <span class="st">"DataFrames"</span>, <span class="st">"Makie"</span>, <span class="st">"CairoMakie"</span>, <span class="st">"GeoMakie"</span>, <span class="st">"ColorSchemes"</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>After installing these packages, you can use them using the command “using” in your Julia REPL, with the package names inserted after the command, as shown below:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">PaleobiologyDB</span>, <span class="bu">PaleobiologyDB.Taxonomy</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DataFrames</span>, <span class="bu">Makie</span>, <span class="bu">CairoMakie</span>, <span class="bu">GeoMakie</span>, <span class="bu">ColorSchemes</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
+<section id="deep-dive-into-julia-packages" class="level1">
+<h1>Deep dive into Julia packages</h1>
+<section id="dataframes" class="level2">
+<h2 class="anchored" data-anchor-id="dataframes">DataFrames</h2>
+<p>“DataFrames” is a Julia package that allows you to acquire and work with tabular data, and it functions as a general-purpose data science and statistics tool. As a package, it has numerous programming language equivalents, such as Python’s “pandas” package and R’s array of data packages, including “data.table,” “dplyr,” and “data.frame”. “DataFrames” is essential in the Julia Data ecosystem, as it serves an essential purpose in data manipulation, cleaning, and statistical analysis. For the purpose of this tutorial, this package can be used to create and generate tables of fossil occurrence data and other types of data stemming from PaleobiologyDB.</p>
+</section>
+<section id="makie-family-and-colorschemes" class="level2">
+<h2 class="anchored" data-anchor-id="makie-family-and-colorschemes">Makie family and ColorSchemes</h2>
+<p>“Makie” and “CairoMakie” are visualization packages that allow programmers to create high-quality plots, maps, and visualizations of data in Julia. “GeoMakie” is another example of a “Makie-esque” package that is designed for plotting geospatial data through maps and geographical distribution plots. “ColorSchemes” is a color-based package that provides a variety of color palettes and schemes that can be used to enhance the appearance, aesthetics, and clarity of high-quality visualizations that are created using the “Makie” family packages.</p>
+<p><strong>NOTE:</strong> For Makie-made plots and visualizations, you can check out <a href="https://beautiful.makie.org/dev/" class="uri">https://beautiful.makie.org/dev/</a> for more information on how to customize your visualizations, including how to use different kinds of color schemes, plot attributes (e.g., labels, ticks, fonts, etc.), and more. Beautiful Makie is a useful resource for learning how to construct high-quality, “beautiful” visualizations in Julia using the “Makie” family of packages, including “Makie,” “CairoMakie,” “GeoMakie,” and much more.</p>
+</section>
+<section id="paleobiologydb" class="level2">
+<h2 class="anchored" data-anchor-id="paleobiologydb">PaleobiologyDB</h2>
+<p>PaleobiologyDB is a public database that contains information on fossil occurrences, including their geographic locations, ages, and taxonomic classifications. This database seeks to provide a comprehensive and accessible resource for paleontologists, researchers, educators, and the general public interested in the field of paleontology. Additionally, it contains a complete catalogue of all fossil occurrences through geological time and the tree of life.</p>
+<p>For this tutorial, we will be using the “PaleobiologyDB.jl” package, which is a Julia interface to the PaleobiologyDB database. This package allows you to access the database and acquire specific fossil occurrences based on various factors, including taxonomic groups (e.g., genera, families, classes, etc.), geographic location, appearance data, and time intervals.</p>
+<p>“PaleobiologyDB.jl” can be downloaded from GitHub via the “Pkg” package manager in Julia, via the website: <a href="https://github.com/jeetsukumaran/PaleobiologyDB.jl" class="uri">https://github.com/jeetsukumaran/PaleobiologyDB.jl</a> or by using the following code in your Julia REPL:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Pkg</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">Pkg</span>.<span class="fu">add</span>(<span class="st">"PaleobiologyDB"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>If you go on PaleobiologyDB’s official website at <a href="https://paleobiodb.org/#/" class="uri">https://paleobiodb.org/#/</a>, you can click on the “Learn” tab (in red), then click on “Teach and Learn”. On the Resources page, you can scroll through both web apps and tutorials using the PaleobiologyDB database. For the sake of this tutorial, we will be using the “Pangea Puzzle” tutorial, which is under “Lesson Plans and Educational Activities”. Clicking on “The Pangea Puzzle” takes you to the official activity PDF, which you can download from <a href="https://serc.carleton.edu/NAGTWorkshops/intro/activities/177872.html" class="uri">https://serc.carleton.edu/NAGTWorkshops/intro/activities/177872.html</a>. This activity PDF contains instructions and questions that will be answered throughout the tutorial. You can use both the PDF and the Navigator (at <a href="https://paleobiodb.org/navigator/" class="uri">https://paleobiodb.org/navigator/</a>) alongside your Julia tutorial.</p>
+</section>
+</section>
+<section id="part-1-construct-a-map-of-fossil-distributions-on-the-modern-continents-using-lystrosaurus." class="level1">
+<h1>Part 1: Construct a map of fossil distributions on the modern continents using Lystrosaurus.</h1>
+<section id="creating-a-general-map-of-lystrosaurus-fossil-occurrences" class="level2">
+<h2 class="anchored" data-anchor-id="creating-a-general-map-of-lystrosaurus-fossil-occurrences">Creating a general map of Lystrosaurus fossil occurrences</h2>
+<p>After setting up your packages, you will need to query PaleobiologyDB’s database using ‘pbdb_occurrences’ to retrieve the fossil occurrences of <em>Lystrosaurus</em>. This is to acquire the data necessary for plotting the distribution of <em>Lystrosaurus</em> fossils on a map.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>animal <span class="op">=</span> <span class="st">"Lystrosaurus"</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>lystro_raw <span class="op">=</span> <span class="fu">pbdb_occurrences</span>(</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    base_name <span class="op">=</span> animal,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    show <span class="op">=</span> [<span class="st">"coords"</span>, <span class="st">"classext"</span>],</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    vocab <span class="op">=</span> <span class="st">"pbdb"</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    extids <span class="op">=</span> <span class="cn">true</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Using ‘println’ can help you print out and understand the data that you acquired from the query, including the number of fossil occurrences of <em>Lystrosaurus</em>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"Found "</span>, <span class="fu">nrow</span>(df_raw), <span class="st">" Lystrosaurus fossils!"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The output will read: “Found 124 Lystrosaurus fossils!”</p>
+<p>This indicates that you have found exactly 124 fossil occurrences of <em>Lystrosaurus</em> in the database, which can be used to create a map of fossil distributions of <em>Lystrosaurus</em>.</p>
+<p>We’ll clean up the data next. This can be done by doing the following:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>clean <span class="op">=</span> <span class="fu">dropmissing</span>(df_raw, [<span class="op">:</span>lng, <span class="op">:</span>lat, <span class="op">:</span>min_ma, <span class="op">:</span>max_ma])</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>clean <span class="op">=</span> <span class="fu">transform</span>(</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    clean,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    [<span class="op">:</span>min_ma, <span class="op">:</span>max_ma] <span class="op">=&gt;</span> ((lo, hi) <span class="op">-&gt;</span> (lo <span class="op">.+</span> hi) <span class="op">./</span> <span class="fl">2</span>) <span class="op">=&gt;</span> <span class="op">:</span>mid_ma</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Ensure that you can print out the cleaned data, specifically to clarify that the data has been properly “cleaned.”</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"Records with valid coordinates: "</span>, <span class="fu">nrow</span>(clean))</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"Records dropped: "</span>, <span class="fu">nrow</span>(df_raw) <span class="op">-</span> <span class="fu">nrow</span>(clean))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The output will now read: “Records with valid coordinates: 124” and “Records dropped: 0” respectively. These aspects represent the fossil records that contain valid coordinates and the exact number of fossil records that had to be dropped due to missing data, which was 0.</p>
+<p>After cleaning the data some more, you can use the data to make a map of Lystrosaurus fossil occurrences using the “CairoMakie” and “GeoMakie” packages, which allow you to create high-quality visualizations and maps, particularly of geological data using the PaleobiologyDB database in Julia. You can use ‘Figure’ to create a new figure. ‘GeoAxis’ can be used to set up a geographic axis with specific projections. ‘poly!’ can be used to add land polygons to the map, while ‘scatter!’ can be used to plot the fossil occurrences as points on the map, colored by their age. Finally, you can use ‘Colorbar’ to indicate the age of the fossils.</p>
+<p><strong>NOTE:</strong> <a href="https://docs.juliaplots.org/dev/" class="uri">https://docs.juliaplots.org/dev/</a> is a useful resource for learning how to plot data in Julia, using packages such as “Plots,” “CairoMakie,” “ColorSchemes” (for colors), and more. You can use the table of contents to find specific topics related to plotting in Julia, and you can use plot attributes to customize/clean up your visualizations. If you’re using Visual Studio Code (VSCode), you can use Copilot to look up specific attributes for functions in plotting.</p>
+<p>The code for making the map is as follows:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">1000</span>, <span class="fl">600</span>))</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>ga <span class="op">=</span> <span class="fu">GeoAxis</span>(</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    fig[<span class="fl">1</span>,<span class="fl">1</span>],</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    dest <span class="op">=</span> <span class="st">"proj=natearth2"</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"Lystrosaurus fossil occurrences"</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="fu">poly!</span>(ga, GeoMakie.<span class="fu">land</span>(); color <span class="op">=</span> <span class="op">:</span>whitesmoke, strokecolor <span class="op">=</span> <span class="op">:</span>gray55, strokewidth <span class="op">=</span> <span class="fl">0.5</span>)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>sc <span class="op">=</span> <span class="fu">scatter!</span>(ga, clean.lng, clean.lat; color <span class="op">=</span> clean.mid_ma, colormap <span class="op">=</span> <span class="op">:</span>thermal, markersize <span class="op">=</span> <span class="fl">7.5</span>)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="fu">Colorbar</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], sc; label <span class="op">=</span> <span class="st">"Age (Ma)"</span>, flipaxis <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="fu">display</span>(fig)</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(<span class="st">"lystrosaurus_pangea_puzzle_occurrences_072326.png"</span>, fig)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="lystrosaurus_pangea_puzzle_occurrences_072326.png" class="img-fluid figure-img"></p>
+<figcaption>Lystrosaurus fossil occurrences</figcaption>
+</figure>
+</div>
+<p>This code will create a map of <em>Lystrosaurus</em> fossil occurrences, with the points colored by their age (in millions of years). In this case, <em>Lystrosaurus</em> fossils were mainly found in South Africa, but also through Asia and Antarctica. For reference, you’ll also need to answer the questions that come with the original tutorial.</p>
+<p><strong>Question 1:</strong> In one to three sentences, describe how the occurrences of <em>Lystrosaurus</em> fossils are distributed on the modern map. if you were to redraw this map during the time that <em>Lystrosaurus</em> lived, what do you predict will happen to the distribution of <em>Lystrosaurus</em> fossil localites? (In your activity PDF)</p>
+<p><strong>Question 2:</strong> Based on the matching on your modern map, when did <em>Lystrosaurus</em> live? (In your activity PDF)</p>
+</section>
+<section id="creating-a-specific-map-of-lystrosaurus-fossil-occurrences-in-a-specific-time-interval-when-did-they-live" class="level2">
+<h2 class="anchored" data-anchor-id="creating-a-specific-map-of-lystrosaurus-fossil-occurrences-in-a-specific-time-interval-when-did-they-live">Creating a specific map of Lystrosaurus fossil occurrences in a specific time interval (When did they live?)</h2>
+<p>Based on your answer to question 2, you can reconstruct your map to show the distribution of <em>Lystrosaurus</em> fossils during the time that they lived. Using “pbdb_occurrences” again, you can acquire data on <em>Lystrosaurus</em> fossil occurrences during the time that they lived by adding “interval” to the function. In this example, we’ll reuse the workflow previously established using the “Triassic” interval.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>animal <span class="op">=</span> <span class="st">"Lystrosaurus"</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>period <span class="op">=</span> <span class="st">"Early Triassic"</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>lystro_triassic_raw <span class="op">=</span> <span class="fu">pbdb_occurrences</span>(</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    base_name <span class="op">=</span> animal,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    interval <span class="op">=</span> period,</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    show <span class="op">=</span> [<span class="st">"coords"</span>, <span class="st">"classext"</span>],</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    vocab <span class="op">=</span> <span class="st">"pbdb"</span>,</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    extids <span class="op">=</span> <span class="cn">true</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"Found "</span>, <span class="fu">nrow</span>(lystro_triassic_raw), <span class="st">" Early Triassic Lystrosaurus fossils!"</span>)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>clean <span class="op">=</span> <span class="fu">dropmissing</span>(lystro_triassic_raw, [<span class="op">:</span>lng, <span class="op">:</span>lat, <span class="op">:</span>min_ma, <span class="op">:</span>max_ma])</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>clean <span class="op">=</span> <span class="fu">transform</span>(</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    clean,</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    [<span class="op">:</span>min_ma, <span class="op">:</span>max_ma] <span class="op">=&gt;</span> ((lo, hi) <span class="op">-&gt;</span> (lo <span class="op">.+</span> hi) <span class="op">./</span> <span class="fl">2</span>) <span class="op">=&gt;</span> <span class="op">:</span>mid_ma</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"Records with valid coordinates: "</span>, <span class="fu">nrow</span>(clean))</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"Records dropped: "</span>, <span class="fu">nrow</span>(lystro_triassic_raw) <span class="op">-</span> <span class="fu">nrow</span>(clean))</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">1000</span>, <span class="fl">600</span>))</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>ga <span class="op">=</span> <span class="fu">GeoAxis</span>(</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>    fig[<span class="fl">1</span>,<span class="fl">1</span>],</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>    dest <span class="op">=</span> <span class="st">"proj=natearth2"</span>,</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"Triassic Lystrosaurus fossil occurrences"</span></span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a><span class="fu">poly!</span>(ga, GeoMakie.<span class="fu">land</span>(); color <span class="op">=</span> <span class="op">:</span>whitesmoke, strokecolor <span class="op">=</span> <span class="op">:</span>gray55, strokewidth <span class="op">=</span> <span class="fl">0.5</span>)</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>sc <span class="op">=</span> <span class="fu">scatter!</span>(ga, clean.lng, clean.lat; color <span class="op">=</span> clean.mid_ma, colormap <span class="op">=</span> <span class="op">:</span>acton, markersize <span class="op">=</span> <span class="fl">7.5</span>)</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a><span class="fu">Colorbar</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], sc; label <span class="op">=</span> <span class="st">"Age (Ma)"</span>, flipaxis <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a><span class="fu">display</span>(fig)</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(<span class="st">"early_triassic_lystrosaurus_pangea_puzzle_occurrences_072326.png"</span>, fig)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="early_triassic_lystrosaurus_pangea_puzzle_occurrences_072326.png" class="img-fluid figure-img"></p>
+<figcaption>Triassic Lystrosaurus fossil occurrences</figcaption>
+</figure>
+</div>
+<p><strong>Question 3:</strong> In one to three sentences, describe any changes in the distribution of your fossil. Make sure to save a copy of your map for reference. (In your activity PDF)</p>
+</section>
+</section>
+<section id="part-2-construct-a-map-of-fossil-distributions-of-mesosaurus-and-glossopteris-on-the-modern-continents." class="level1">
+<h1>Part 2: Construct a map of fossil distributions of Mesosaurus and Glossopteris on the modern continents.</h1>
+<section id="creating-a-general-map-of-mesosaurus-fossil-occurrences" class="level2">
+<h2 class="anchored" data-anchor-id="creating-a-general-map-of-mesosaurus-fossil-occurrences">Creating a general map of Mesosaurus fossil occurrences</h2>
+<p>Using the workflow established in Part 1, you will construct maps of <em>Mesosaurus</em> fossil occurrences on the modern continents. After creating the map, take a closer look at the distribution of <em>Mesosaurus</em> fossils and answer the following questions in your activity PDF.</p>
+<p>Example workflow for <em>Mesosaurus</em>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>animal <span class="op">=</span> <span class="st">"Mesosaurus"</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>mesosaurus_raw <span class="op">=</span> <span class="fu">pbdb_occurrences</span>(</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    base_name <span class="op">=</span> animal,</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    show <span class="op">=</span> [<span class="st">"coords"</span>, <span class="st">"classext"</span>],</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    vocab <span class="op">=</span> <span class="st">"pbdb"</span>,</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    extids <span class="op">=</span> <span class="cn">true</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"Found "</span>, <span class="fu">nrow</span>(mesosaurus_raw), <span class="st">" Mesosaurus fossils!"</span>)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>clean <span class="op">=</span> <span class="fu">dropmissing</span>(mesosaurus_raw, [<span class="op">:</span>lng, <span class="op">:</span>lat, <span class="op">:</span>min_ma, <span class="op">:</span>max_ma])</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>clean <span class="op">=</span> <span class="fu">transform</span>(</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    clean,</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    [<span class="op">:</span>min_ma, <span class="op">:</span>max_ma] <span class="op">=&gt;</span> ((lo, hi) <span class="op">-&gt;</span> (lo <span class="op">.+</span> hi) <span class="op">./</span> <span class="fl">2</span>) <span class="op">=&gt;</span> <span class="op">:</span>mid_ma</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"Records with valid coordinates: "</span>, <span class="fu">nrow</span>(clean))</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"Records dropped: "</span>, <span class="fu">nrow</span>(mesosaurus_raw) <span class="op">-</span> <span class="fu">nrow</span>(clean))</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">1000</span>, <span class="fl">600</span>))</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>ga <span class="op">=</span> <span class="fu">GeoAxis</span>(</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>    fig[<span class="fl">1</span>,<span class="fl">1</span>],</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>    dest <span class="op">=</span> <span class="st">"proj=natearth2"</span>,</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"Mesosaurus fossil occurrences"</span></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a><span class="fu">poly!</span>(ga, GeoMakie.<span class="fu">land</span>(); color <span class="op">=</span> <span class="op">:</span>whitesmoke, strokecolor <span class="op">=</span> <span class="op">:</span>gray60, strokewidth <span class="op">=</span> <span class="fl">0.75</span>)</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>sc <span class="op">=</span> <span class="fu">scatter!</span>(ga, clean.lng, clean.lat; color <span class="op">=</span> clean.mid_ma, colormap <span class="op">=</span> <span class="op">:</span>lapaz, markersize <span class="op">=</span> <span class="fl">6.5</span>)</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a><span class="fu">Colorbar</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], sc; label <span class="op">=</span> <span class="st">"Age (Ma)"</span>, flipaxis <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a><span class="fu">display</span>(fig)</span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(<span class="st">"mesosaurus_pangea_puzzle_occurrences_072326.png"</span>, fig)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="mesosaurus_pangea_puzzle_occurrences_072326.png" class="img-fluid figure-img"></p>
+<figcaption>Mesosaurus fossil occurrences</figcaption>
+</figure>
+</div>
+<p><strong>Question 1:</strong> Look at the distribution for these fossils. Describe the distribution of this fossil on the land masses. (In your activity PDF)</p>
+<p><strong>Question 2:</strong> How do you think this animal might have gotten distributed in this pattern? (In your activity PDF)</p>
+<p><strong>Question 3:</strong> Using online resources and your activity PDF, look up some information on <em>Mesosaurus</em>. Now that you know what kind of animal it is, does your answer to number 3 still make sense? Additionally, you can use “pbdb_occurrences” to acquire more data on <em>Mesosaurus</em> using a description workflow. For example:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>mesosaurus_occs <span class="op">=</span> <span class="fu">pbdb_occurrences</span>(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    base_name <span class="op">=</span> <span class="st">"Mesosaurus"</span>,</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    show <span class="op">=</span> <span class="st">"full"</span>,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    vocab <span class="op">=</span> <span class="st">"pbdb"</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    extids <span class="op">=</span> <span class="cn">true</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">typeof</span>(mesosaurus_occs)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="fu">size</span>(mesosaurus_occs)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="fu">foreach</span>(println, <span class="fu">names</span>(mesosaurus_occs))</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="fu">describe</span>(mesosaurus_occs)</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="fu">show</span>(<span class="fu">describe</span>(mesosaurus_occs), allrows <span class="op">=</span> <span class="cn">true</span>)</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a><span class="fu">combine</span>(<span class="fu">groupby</span>(mesosaurus_occs, <span class="op">:</span>accepted_rank), nrow)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Question 4a:</strong> When did <em>Mesosaurus</em> live? (In your activity PDF)</p>
+<p>We can calculate the range of <em>Mesosaurus</em> fossils using “pbdb_occurrences,” using the following code:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">PaleobiologyDB</span>, <span class="bu">PaleobiologyDB.Taxonomy</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DataFrames</span>, <span class="bu">Makie</span>, <span class="bu">CairoMakie</span>, <span class="bu">GeoMakie</span>, <span class="bu">ColorSchemes</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>PaleobiologyDB.<span class="fu">set_autocaching!</span>(<span class="cn">true</span>);</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>animal <span class="op">=</span> <span class="st">"Mesosaurus"</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>df_meso_raw <span class="op">=</span> <span class="fu">pbdb_occurrences</span>(</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    base_name <span class="op">=</span> animal,</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    show <span class="op">=</span> <span class="st">"full"</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    vocab <span class="op">=</span> <span class="st">"pbdb"</span>,</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    extids <span class="op">=</span> <span class="cn">true</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>df_meso <span class="op">=</span> <span class="fu">dropmissing</span>(df_meso_raw, [</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>genus,</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>early_interval,</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>max_ma,</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>min_ma</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>To drop unresolved or unqualified taxa, you can use the following code:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>df_meso <span class="op">=</span> <span class="fu">drop_unresolved_taxa</span>(df_meso, <span class="op">:</span>genus)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>To calculate a midpoint age (Ma) for each fossil occurrence, you can then use the following code:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>df_meso.midpoint_age <span class="op">=</span> (df_meso.max_ma <span class="op">.+</span> df_meso.min_ma) <span class="op">./</span> <span class="fl">2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The split-apply-combine method is a type of workflow that splits the bigger DataFrame (consisting of all fossil occurrences) into per-genus specific tables consisting of first appearance and last appearance data. This is done by applying a summary function to each sub-table and combining them to form a new DataFrame, as follows:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>appearance_df_meso <span class="op">=</span> <span class="fu">combine</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">groupby</span>(df_meso, <span class="op">:</span>genus, sort <span class="op">=</span> <span class="cn">true</span>),</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>midpoint_age <span class="op">=&gt;</span> maximum <span class="op">=&gt;</span> <span class="op">:</span>first_appearance_datum,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span>midpoint_age <span class="op">=&gt;</span> minimum <span class="op">=&gt;</span> <span class="op">:</span>last_appearance_datum</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>appearance_df_meso <span class="op">=</span> <span class="fu">sort</span>(appearance_df_meso, <span class="op">:</span>first_appearance_datum, rev <span class="op">=</span> <span class="cn">true</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>To create a chart of this range, you can use the “Makie” and “CairoMakie” packages to create a map and bar chart of the first and last appearance data for each genus, using the following code:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Makie</span>, <span class="bu">CairoMakie</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>()</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> <span class="fu">Axis</span>(</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    fig[<span class="fl">1</span>,<span class="fl">1</span>],</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    xlabel <span class="op">=</span> <span class="st">"Midpoint age (Ma)"</span>,</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    ylabel <span class="op">=</span> <span class="st">"Genus"</span>,</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    yticks <span class="op">=</span> (<span class="fl">1</span><span class="op">:</span><span class="fu">nrow</span>(appearance_df_meso), appearance_df_meso.genus),</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    xreversed <span class="op">=</span> <span class="cn">true</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu">nrow</span>(appearance_df_meso)</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    x1 <span class="op">=</span> appearance_df_meso.first_appearance_datum[i]</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    x2 <span class="op">=</span> appearance_df_meso.last_appearance_datum[i]</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lines!</span>(ax, [x1, x2], [i, i])</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>fig</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(<span class="st">"mesosaurus_range_through_072326.png"</span>, fig)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Question 4b:</strong> Looking at the map you created, what is different about your map? Does it make more sense now in light of what you know about Mesosaurus? Why or why not? (In your activity PDF)</p>
+<p><strong>NOTE:</strong> If nothing appears on your graph, you can check back to your sub-table that was made using the split-apply-combine method to make sure that the data was properly grouped and summarized. You can also check to make sure that the “first_appearance_datum” and “last_appearance_datum” columns were properly created with your data. Both of these aspects can be analyzed to determine if we have too little data or if there are any errors in your workflow. Additionally, we may consider the differences between coordinate spacing and GIS spacing, when graphing your data. This may affect how certain data is plotted on your chart.</p>
+</section>
+<section id="creating-a-general-map-of-glossopteris-fossil-occurrences" class="level2">
+<h2 class="anchored" data-anchor-id="creating-a-general-map-of-glossopteris-fossil-occurrences">Creating a general map of Glossopteris fossil occurrences</h2>
+<p>Repeat the procedure/workflow used for <em>Mesosaurus</em> above, this time for the genus <em>Glossopteris</em>. After constructing the map for <em>Glossopteris</em>, make sure to save a copy of your map for reference, especially in answering the question below.</p>
+<p><strong>Question 5:</strong> What do all of these fossil distribution suggest? (In your activity PDF)</p>
+</section>
+</section>
+<section id="part-3-construct-a-map-of-fossil-distributions-of-marsupialia-on-the-modern-continents-and-previous-time-periods." class="level1">
+<h1>Part 3: Construct a map of fossil distributions of Marsupialia on the modern continents and previous time periods.</h1>
+<p>Here is an example of a complete workflow (of constructing occurrence maps) for the infraclass Marsupialia in the Neogene time period, which you can use as a template to create your own map of fossil distributions for Marsupialia on the modern continents and other time periods. You can also use this workflow to create maps for other organisms, as shown in Part 4 of the tutorial.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>animal <span class="op">=</span> <span class="st">"Marsupialia"</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>period <span class="op">=</span> <span class="st">"Neogene"</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>marsupialia_neogene_raw <span class="op">=</span> <span class="fu">pbdb_occurrences</span>(</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    base_name <span class="op">=</span> animal,</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    interval <span class="op">=</span> period,</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    show <span class="op">=</span> [<span class="st">"coords"</span>, <span class="st">"classext"</span>],</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    vocab <span class="op">=</span> <span class="st">"pbdb"</span>,</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    extids <span class="op">=</span> <span class="cn">true</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"Found "</span>, <span class="fu">nrow</span>(marsupialia_neogene_raw), <span class="st">" Neogene Marsupialia fossils!"</span>)</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>clean_marsu <span class="op">=</span> <span class="fu">dropmissing</span>(marsupialia_neogene_raw, [<span class="op">:</span>lng, <span class="op">:</span>lat, <span class="op">:</span>min_ma, <span class="op">:</span>max_ma])</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>clean_marsu <span class="op">=</span> <span class="fu">transform</span>(</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    clean_marsu,</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    [<span class="op">:</span>min_ma, <span class="op">:</span>max_ma] <span class="op">=&gt;</span> ((lo, hi) <span class="op">-&gt;</span> (lo <span class="op">.+</span> hi) <span class="op">./</span> <span class="fl">2</span>) <span class="op">=&gt;</span> <span class="op">:</span>mid_ma</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"Records with valid coordinates: "</span>, <span class="fu">nrow</span>(clean_marsu))</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a><span class="fu">println</span>(<span class="st">"Records dropped: "</span>, <span class="fu">nrow</span>(marsupialia_neogene_raw) <span class="op">-</span> <span class="fu">nrow</span>(clean_marsu))</span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">1000</span>, <span class="fl">600</span>))</span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>ga <span class="op">=</span> <span class="fu">GeoAxis</span>(</span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>    fig[<span class="fl">1</span>,<span class="fl">1</span>],</span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a>    dest <span class="op">=</span> <span class="st">"proj=natearth2"</span>,</span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> <span class="st">"Marsupialia fossil occurrences in the Neogene"</span></span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a><span class="fu">poly!</span>(ga, GeoMakie.<span class="fu">land</span>(); color <span class="op">=</span> <span class="op">:</span>whitesmoke, strokecolor <span class="op">=</span> <span class="op">:</span>gray55, strokewidth <span class="op">=</span> <span class="fl">0.5</span>)</span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a>sc <span class="op">=</span> <span class="fu">scatter!</span>(ga, clean_marsu.lng, clean_marsu.lat; color <span class="op">=</span> clean_marsu.mid_ma, colormap <span class="op">=</span> <span class="op">:</span>thermal, markersize <span class="op">=</span> <span class="fl">7.5</span>)</span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a><span class="fu">Colorbar</span>(fig[<span class="fl">1</span>, <span class="fl">2</span>], sc; label <span class="op">=</span> <span class="st">"Age (Ma)"</span>, flipaxis <span class="op">=</span> <span class="cn">false</span>)</span>
+<span id="cb17-35"><a href="#cb17-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-36"><a href="#cb17-36" aria-hidden="true" tabindex="-1"></a><span class="fu">display</span>(fig)</span>
+<span id="cb17-37"><a href="#cb17-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-38"><a href="#cb17-38" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(<span class="st">"marsupialia_neogene_occurrences_072326.png"</span>, fig)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="marsupialia_neogene_occurrences_072326.png" class="img-fluid figure-img"></p>
+<figcaption>Neogene Marsupialia fossil occurrences</figcaption>
+</figure>
+</div>
+<p>After completing the map for Marsupialia fossil occurrences in the Neogene, work back in time and construct maps for the following time periods: Paleogene, Cretaceous, Jurassic, and Triassic. After creating the maps, answer the following questions in your activity PDF:</p>
+<p><strong>Question 1:</strong> What is the most recent time period when the continents, including Marsupialia, were connected? (In your activity PDF)</p>
+<p><strong>Question 2:</strong> How does this help explain the current distribution of Marsupialia, specifically in Australia, South America, and North America? (In your activity PDF)</p>
+</section>
+<section id="part-4-choose-your-own-fossil" class="level1">
+<h1>Part 4: Choose your own fossil!</h1>
+<p>Using the same workflow indicated in Part 3, choose a fossil of your choice and construct a map of its distribution. If you are having trouble thinking of a fossil, you can use fossils such as those from dinosaurs, early mammals, or organisms in marine life (i.e., whales, dolphins, etc.). If you don’t get many dots or “hits” on your map, try expanding your search to include a bigger group of organisms, such as families, orders, or classes.</p>
+<p>As such, answer the following questions below, which are also included in the original tutorial PDF:</p>
+<p><strong>Question 1:</strong> Do you have the same predictions for how the distributions will change from the modern map to the paleo-time map for both the marine and terrestrial organisms? Why might the marine and terrestrial organism distributions behave differently? Make sure to save a copy of your map for reference. (In your activity PDF)</p>
+<p><strong>Question 2:</strong> What did you learn about the past distributions of your fossils? Are these distributions what you expected, or were you surprised in any way? If so, what surprised you? (In your activity PDF)</p>
+</section>
+<section id="references-for-original-activity" class="level1">
+<h1>References (for Original Activity)</h1>
+<p>Uhen, M. (2017, April 17). The Pangea Puzzle. Cutting Edge. https://serc.carleton.edu/NAGTWorkshops/intro/activities/177872.html</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
