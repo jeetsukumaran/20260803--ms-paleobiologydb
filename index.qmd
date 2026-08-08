@@ -22,5 +22,62 @@ authors:
 bibliography: references.bib
 ---
 
-## Section
-This is a simple placeholder for the manuscript's main document [@knuth84].
+- Objectives:
+  - Julia native querying and pre-processing of fossil record and associated paleobiological data from the Paleobiology databases.
+  - Support for teaching and learning paleobiological informatics through:
+    - Performance enhancing infrastructure to lower network bandwidth and server demand in instructional contexts.
+    - Associated video tutorials in Julia to guide novices in either computational or paleobiological fields in using this library.
+- Architecture:
+  - Three layers:
+    - DB API wrapper
+    - Lower-level data caching and scratch data storage:
+      - Massive increase in performance and decrease on bandwidth and server load for repeated queries, especially useful in instructional, learning, classroom, or workshop context, where many participants run multiple repeats of the same queries.
+      - Metadata tables for taxonomic hierarchy stored locally for exploration of extra-channel information without impacting servers
+- Tools:
+    - TaxonomyCurator
+      - Functions for managing paleobiological taxonomic data quality 
+        - `drop_unresolved_taxa`
+        - `drop_unrecognized_taxa`
+        - `augment_taxonomy`
+      - 
+        - `acquire_phylopic`
+        - `augment_phylopic`
+        - `set_autocaching!`
+      - specialized set of functions that synthesize taxonomic information and supporting material to present an 
+- Tutorials
+    - Website ...
+    - Student-produced walkthrough videos
+- NN key tutorials were:
+    - based on the PaleoDB tutorials. These tutorials are based on interacting with the PBDB through the web interface, and carrying out the analysis in Excel. 
+    - The development team first replicated the tutorials in the Julia REPL step-by-step, with LLM assistance for clarification of concepts, debugging syntax and other computational issues, identifying correct Julia mechanisms, and so on. After several iterations of going from blank terminal to final result, a basic MWE Julia workflow of an analysis suitable for a novice student approaching Julia *and* paleobiological was developed.
+- NN other tutorials were developed from ...
+- In addition, various workshop material for paleobiological analysis in R and Python were reviewed for domain-centric best practices to incorporate into workflow.
+- An interesting outcome of incorporating tutorial development into the software development cycle as we did here follows from this: as the beginner tutorial workflow became too complex to explain, we decided to abstract that functionality into a service layer of the PaleobiologyDB.jl package.
+    - For example, it is common to want records of a minimum, rather than a specific, taxonomic resolution, and, further, it may only want records in which the taxon name assigned at that resolution is actually a registered PBDB name. These operations can easily be done in a few simple custom `DataFrame` transforms, but yet are so ubiquitious in practically every analysis that it quicklly became clear the `drop_..._taxa()` functions were going to provide major workflow benefits, leading to the introduction of the `PaleobiologyDB.Taxonomy` module and its data curation functions.
+    - Another issue identified in the early iterations of the workflow was the complexity involved in searching, filtering, or otherwise isolating records based on general clade names.
+        - The primary data tracked clade identities at major taxonomic ranks (e.g. genus, family, order, class), but operations at other levels (subfamilies, etc.) required dereferencing assigned name in a secondary table
+- Planned usage in a primary research and, in particular, instructional-research context (SDSU adopts a "teacher-scholar" model) resulted in a rich layer that provides for discovery and exploration of the taxonomic context of the fossil occurence data. 
+    - Initially developed in recognition that many students were unfamiliar with the various taxonomic names in the various tutorial case studies, and beyond the names themselves, mapping the names to understandings of the groups and their context in the real world etc. led to the development of several exploration visualization features:
+        - PhyloPicDB, PhyloPicMakie
+            - Developed to augment all fossil occurrence data with PhyloPic images
+                - Allows students and practicing data scientists develop intuition about the dfferent types of organisms that generated the data
+                - Available for decorating plots and trees etc., so this insight can be communicated or amplified
+            - Beyond the database mapping ALSO provides som value-added layers
+                - All images are retrieved as idiomatic  `PhyloPicImage` types, with enrichened fields: `taxon_name` stores the user's original query while  `node_name` dereferences the particular species name of the image by mapping it back to its most specific node. 
+                - Thus a query for "Canidae" (with `image_filter = :clade`) will return a list of images with each one with two extra columns added to the PhyloPic image record, e.g. "`taxon_name = "Canidae"`" and "`node_name = "Canis lupus"`"
+                - Combined with PhyloPicMakie providing thumbnail gallery plots, a simple command such as `phylopic_thumbnail_grid("Felis")` provides an instant overview of the diversity of the group: 
+                  
+                  ![[storage/local/attachments/png/palebiologydb-phylopic-felis-display.png]] 
+                    
+                    Such highly visual information being so accessible with so little friction in such intuitive syntax was transformational in the learning experience. Simply being able to have such rich visually stimulating responses so easily connected to names and concepts provided such a fulfilling experience that it made exploring the taxonomy a rewarding experience in itself, self-incentivising broader understanding of the system and mechanics to communicate that understanding (i.e., learning more about Julia visualization to be able to produce figures or augment figures with contextualization graphics).
+        - TaxonomyTree, TaxonomyMakie
+            - Provides tools to understand the systematics of the domain and the distribution of diversity hierarchically.
+    - These have proven to remarkably transformative in not ony accelerating understanding the systems but also increase motivation and interest in learning in students as well as making it easier for them to identify issues with the analysis and data as they become more familiar with the system, a benefit that will no doubt also accrue to practicing data scientists as well.
+- Another major value-added to the database layer driven by instructional context was that caching. 
+    - While many caching solutions exist, a particular convergence of needs for data science training workshops was not met by any existing data caching package: zero (or minimal) syntax pollution to keep user-facing code example clean of caching syntax artifacts; zero (or minimal) user setup and configuration *required*, but *optional* full fine-grained (independent, mix-and-match) control as to cache location, asset management, cleanup, expiration etc; persistence across sessions; shareable across file-systems As the lead developer has experience and plans to use this package in training workshops, and very often in places many places in the world network bandwidth are limited or otherwise gets overwhelmed with spikes of usage like multiple students repeatedly carrying out the same computations at the same time in informatics workshops, we implemented completely organic and seamless caching of queries, with options for zero-management to total managment depending on needs and background of the users.
+    - `PaleobiologyDB` takes advantage of a special feature that `DataCaches.jl` provides: autocaching.
+    - This allows user-facing code in live presentations or demonstrations, screen casts, code documentation, code examples, etc, to have ZERO change in syntax or presentation (beyond an initial `set_autocaching!(true)`).
+    - In addition, very useful in Quarto computational document, website, book, reports, to avoid repeated live queries or computations in presentation code cells during the multiple compilations and renders of the authoring process, without distorting or cluttering the presentation by exposing the caching mechanism syntax in the code.
+    - This functionality turned out to be so useful that it was extracted out as its own independent package, `DataCaches.jl`, hosted by "JuliaData". 
+- AI usage
+    - Code development: Claude Code (primarily) integrated into the development cycle in various ways (scaffolding, refactoring, API evaluation, predicting/fixing bugs, writing tests), Typically, Claude was first run in plan mode through multiple iterations of plan/human (lead developer; JS) review, update, and repeat cycles. Any new code was subject to attached scientific coding/Julia/Sci ML best practices STYLE.md. Following tests passing, new integrative/"trade"-testing features were carried team members without a programming background, with results cross-checked with expected or predicted results using common reference cases.
