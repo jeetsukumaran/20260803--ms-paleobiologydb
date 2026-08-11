@@ -139,7 +139,3 @@ All AI-assisted output — in code, tutorials, and this manuscript — was revie
 [NON-AUTHOR CONTRIBUTORS TO THANK, IF ANY — e.g. workshop participants, students who tested tutorials, reviewers of early drafts.]
 
 # References
-
-[This section is populated automatically by Pandoc from `references.bib` at render time and can't be meaningfully drafted here.
-See the EDITORIAL note in `index.qmd`'s References section for candidate entries — at minimum, the Peters & McClennen (2016) PBDB API paper already cited in the package's own `README.md`, plus citations for `DataCaches.jl` and `PhyloPicMakie.jl` if they are to be credited.
-None of these have been added to `references.bib`, since that file is outside this task's scope.]
